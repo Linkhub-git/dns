@@ -33,7 +33,22 @@ APPLY="serviceAccount:dns-apply@$PROYECTO.iam.gserviceaccount.com"
 g projects add-iam-policy-binding "$PROYECTO" --member="$PLAN" --role=roles/dns.reader --condition=None >/dev/null
 g storage buckets add-iam-policy-binding "gs://$BUCKET" --member="$PLAN" --role=roles/storage.objectViewer >/dev/null
 # dns-apply: administra solo la zona app-linkhub-ai (no puede crear ni borrar zonas).
-g dns managed-zones add-iam-policy-binding "$ZONA" --member="$APPLY" --role=roles/dns.admin >/dev/null
+# (gcloud no tiene add-iam-policy-binding para zonas: se lee la política, se añade y se escribe.)
+POL=$(mktemp)
+g dns managed-zones get-iam-policy "$ZONA" --format=json >"$POL"
+python3 - "$POL" "$APPLY" <<'PY'
+import json, sys
+ruta, miembro, rol = sys.argv[1], sys.argv[2], "roles/dns.admin"
+p = json.load(open(ruta))
+b = [x for x in p.setdefault("bindings", []) if x["role"] == rol]
+if not b:
+    p["bindings"].append({"role": rol, "members": [miembro]})
+elif miembro not in b[0]["members"]:
+    b[0]["members"].append(miembro)
+json.dump(p, open(ruta, "w"))
+PY
+g dns managed-zones set-iam-policy "$ZONA" --policy-file="$POL" >/dev/null
+rm -f "$POL"
 g projects add-iam-policy-binding "$PROYECTO" --member="$APPLY" --role=roles/dns.reader --condition=None >/dev/null
 g storage buckets add-iam-policy-binding "gs://$BUCKET" --member="$APPLY" --role=roles/storage.objectAdmin >/dev/null
 
