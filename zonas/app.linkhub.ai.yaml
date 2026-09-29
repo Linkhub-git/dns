@@ -1,0 +1,26 @@
+# Registros de la zona app.linkhub.ai (Cloud DNS, proyecto linkhub-dns, zona app-linkhub-ai).
+#
+# Cada entrada:
+#   nombre:  la parte a la izquierda de app.linkhub.ai ("crm-dev" -> crm-dev.app.linkhub.ai)
+#   tipo:    A, AAAA, CNAME, TXT, NS, CAA o MX
+#   ttl:     segundos (300 a 86400)
+#   valores: lista de valores (CNAME y NS terminan en punto)
+#   dueno:   equipo o persona responsable (obligatorio)
+#   nota:    para qué es (obligatorio)
+#
+# Se añade o cambia por pull request: el CI valida y muestra el plan; al hacer merge a main
+# se aplica solo. Ver README.md.
+
+registros:
+  # CRM de NOA (entorno dev). La subzona vive en el proyecto lhcrm-dev: dentro, el equipo
+  # del CRM gestiona admin., api. y <organizacion>. sin pasar por este repo.
+  - nombre: crm-dev
+    tipo: NS
+    ttl: 3600
+    valores:
+      - ns-cloud-d1.googledomains.com.
+      - ns-cloud-d2.googledomains.com.
+      - ns-cloud-d3.googledomains.com.
+      - ns-cloud-d4.googledomains.com.
+    dueno: equipo-crm
+    nota: Subzona crm-dev del CRM de NOA (zona crm-dev en lhcrm-dev, creada por infra/gcp/dominio.sh)
