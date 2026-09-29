@@ -4,7 +4,8 @@ import ipaddress, re, sys, pathlib
 import yaml
 
 TIPOS = {"A", "AAAA", "CNAME", "TXT", "NS", "CAA", "MX"}
-ETIQUETA = re.compile(r"^(\*|[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)$")
+# Etiquetas con "_" al principio (p. ej. _dmarc, brevo1._domainkey) son de servicio: solo TXT/CNAME.
+ETIQUETA = re.compile(r"^(\*|_?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)$")
 FQDN = re.compile(r"^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+$")
 errores = []
 
@@ -22,6 +23,8 @@ for archivo in sorted(pathlib.Path("zonas").glob("*.yaml")):
             err(archivo, i, "el apex (app.linkhub.ai) no se toca desde aquí")
         elif not all(ETIQUETA.match(p) for p in nombre.split(".")) or "*" in nombre.split(".")[1:]:
             err(archivo, i, f"nombre inválido: {nombre!r} (minúsculas, dígitos y guiones; * solo al principio)")
+        if any(p.startswith("_") for p in nombre.split(".")) and tipo not in ("TXT", "CNAME"):
+            err(archivo, i, "los nombres con '_' (_dmarc, _domainkey...) solo pueden ser TXT o CNAME")
         if tipo not in TIPOS:
             err(archivo, i, f"tipo no permitido: {tipo!r} (permitidos: {', '.join(sorted(TIPOS))})")
         if not r.get("dueno"):

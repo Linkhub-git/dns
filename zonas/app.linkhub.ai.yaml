@@ -24,3 +24,30 @@ registros:
       - ns-cloud-d4.googledomains.com.
     dueno: equipo-crm
     nota: Subzona crm-dev del CRM de NOA (zona crm-dev en lhcrm-dev, creada por infra/gcp/dominio.sh)
+
+  # Correo transaccional del CRM (Brevo, remitente no-reply@crm.app.linkhub.ai: invitaciones y
+  # restablecer contraseña). Cuando exista la subzona de producción "crm", mover estos 4 allí.
+  - nombre: crm
+    tipo: TXT
+    ttl: 3600
+    valores: ["brevo-code:d833088a98d95d0c3aa6faacb0f77bd0"]
+    dueno: equipo-crm
+    nota: Verificación del dominio de envío en Brevo
+  - nombre: brevo1._domainkey.crm
+    tipo: CNAME
+    ttl: 3600
+    valores: [b1.crm-app-linkhub-ai.dkim.brevo.com.]
+    dueno: equipo-crm
+    nota: DKIM 1 de Brevo (firma de los correos del CRM)
+  - nombre: brevo2._domainkey.crm
+    tipo: CNAME
+    ttl: 3600
+    valores: [b2.crm-app-linkhub-ai.dkim.brevo.com.]
+    dueno: equipo-crm
+    nota: DKIM 2 de Brevo (firma de los correos del CRM)
+  - nombre: _dmarc.crm
+    tipo: TXT
+    ttl: 3600
+    valores: ["v=DMARC1; p=none; rua=mailto:rua@dmarc.brevo.com"]
+    dueno: equipo-crm
+    nota: DMARC del dominio de envío del CRM
